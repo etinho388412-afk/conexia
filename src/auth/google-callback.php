@@ -26,7 +26,6 @@ $tokenResponse = file_get_contents('https://oauth2.googleapis.com/token', false,
         ]),
     ],
 ]));
-
 $tokenData = json_decode($tokenResponse, true);
 
 if (!isset($tokenData['access_token'])) {
@@ -36,7 +35,7 @@ if (!isset($tokenData['access_token'])) {
 
 // 2) Busca os dados do perfil do usuário
 $perfilResponse = file_get_contents(
-    'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . urlencode($tokenData['access_token'])
+    'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $tokenData['access_token']
 );
 $perfil = json_decode($perfilResponse, true);
 
@@ -60,9 +59,9 @@ $usuario = $stmt->fetch();
 
 if (!$usuario) {
     // Novo usuário: por padrão entra como 'estudante'.
-    // A promoção para 'professor' deve ser feita manualmente pela secretaria/admin no banco.
+    // A promoção para 'professor' deve ser feita manualmente.
     $stmt = $pdo->prepare(
-        'INSERT INTO usuarios (nome, email, google_id, foto_url, tipo_perfil) VALUES (?, ?, ?, ?, ?)'
+        'INSERT INTO usuarios (nome, email, google_id, foto, tipo_perfil) VALUES (?, ?, ?, ?, ?)'
     );
     $stmt->execute([
         $perfil['name'],
@@ -87,9 +86,11 @@ if (!$usuario) {
 // 5) Loga o usuário e redireciona conforme o perfil
 conexia_logar_usuario($usuario);
 
-$destino = $usuario['tipo_perfil'] === 'professor'
-    ? '/professor/dashboard.php'
-    : '/aluno/dashboard.php';
+// Ajustado para apontar para a pasta pública corretamente sem erro 404
+$destino = ($usuario['tipo_perfil'] ?? 'estudante') === 'professor'
+    ? '../../public/professor/dashboard.php'
+    : '../../public/aluno/dashboard.php';
 
 header("Location: {$destino}");
 exit;
+
