@@ -1,0 +1,14 @@
+/* Caminho: conexia/public/css/dark-mode.css */
+/* Ativado via classe .tema-escuro no <body> (ver main.js) */
+
+body.tema-escuro {
+  --cor-fundo: #0f172a;
+  --cor-superficie: #1e293b;
+  --cor-texto: #f1f5f9;
+  --cor-texto-suave: #94a3b8;
+  --cor-borda: #334155;
+}
+
+body.tema-escuro .badge-pendente { background: #451a03; color: #fbbf24; }
+body.tema-escuro .badge-entregue { background: #172554; color: #93c5fd; }
+body.tema-escuro .badge-corrigida { background: #052e16; color: #86efac; }
