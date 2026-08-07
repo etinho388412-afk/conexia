@@ -4,7 +4,7 @@
 // e cria/loga o usuário no sistema.
 
 require_once __DIR__ . '/../../database.php';
-require_once __DIR__ . '/session.php';
+require_once __DIR__ . '/../../session.php';
 $oAuthConfig = require __DIR__ . '/../../src/config/oauth.php';
 
 if (!isset($_GET['code'])) {
