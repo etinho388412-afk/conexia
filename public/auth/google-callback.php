@@ -1,11 +1,11 @@
 <?php
-// Caminho: conexia/src/auth/google-callback.php
+// Caminho: conexia/public/auth/google-callback.php
 // Recebe o retorno do Google OAuth, valida o domínio institucional
 // e cria/loga o usuário no sistema.
 
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../../database.php';
 require_once __DIR__ . '/session.php';
-$oauthConfig = require __DIR__ . '/../config/oauth.php';
+$oAuthConfig = require __DIR__ . '/../../src/config/oauth.php';
 
 if (!isset($_GET['code'])) {
     http_response_code(400);
@@ -19,13 +19,14 @@ $tokenResponse = file_get_contents('https://oauth2.googleapis.com/token', false,
         'header'  => 'Content-Type: application/x-www-form-urlencoded',
         'content' => http_build_query([
             'code'          => $_GET['code'],
-            'client_id'     => $oauthConfig['client_id'],
-            'client_secret' => $oauthConfig['client_secret'],
-            'redirect_uri'  => $oauthConfig['redirect_uri'],
+            'client_id'     => $oAuthConfig['client_id'],
+            'client_secret' => $oAuthConfig['client_secret'],
+            'redirect_uri'  => $oAuthConfig['redirect_uri'],
             'grant_type'    => 'authorization_code',
         ]),
     ],
 ]));
+
 $tokenData = json_decode($tokenResponse, true);
 
 if (!isset($tokenData['access_token'])) {
@@ -34,9 +35,7 @@ if (!isset($tokenData['access_token'])) {
 }
 
 // 2) Busca os dados do perfil do usuário
-$perfilResponse = file_get_contents(
-    'https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $tokenData['access_token']
-);
+$perfilResponse = file_get_contents('https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . $tokenData['access_token']);
 $perfil = json_decode($perfilResponse, true);
 
 if (!isset($perfil['email'])) {
@@ -45,9 +44,9 @@ if (!isset($perfil['email'])) {
 }
 
 // 3) Valida domínio institucional
-if (!str_ends_with($perfil['email'], $oauthConfig['dominio_permitido'])) {
+if (!str_ends_with($perfil['email'], $oAuthConfig['dominio_permitido'])) {
     http_response_code(403);
-    die('Acesso restrito a e-mails institucionais (' . $oauthConfig['dominio_permitido'] . ').');
+    die('Acesso restrito a e-mails institucionais (' . $oAuthConfig['dominio_permitido'] . ').');
 }
 
 // 4) Cria ou recupera o usuário no banco
@@ -59,7 +58,6 @@ $usuario = $stmt->fetch();
 
 if (!$usuario) {
     // Novo usuário: por padrão entra como 'estudante'.
-    // A promoção para 'professor' deve ser feita manualmente.
     $stmt = $pdo->prepare(
         'INSERT INTO usuarios (nome, email, google_id, foto, tipo_perfil) VALUES (?, ?, ?, ?, ?)'
     );
@@ -86,8 +84,7 @@ if (!$usuario) {
 // 5) Loga o usuário e redireciona conforme o perfil
 conexia_logar_usuario($usuario);
 
-// Ajustado para apontar para a pasta pública corretamente sem erro 404
-$destino = ($usuario['tipo_perfil'] ?? 'estudante') === 'professor'
+$destino = (($usuario['tipo_perfil'] ?? 'estudante') === 'professor')
     ? '../../public/professor/dashboard.php'
     : '../../public/aluno/dashboard.php';
 
