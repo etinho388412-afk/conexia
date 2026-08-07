@@ -43,7 +43,7 @@ if (!isset($perfil['email'])) {
 }
 
 // 3) Valida domínio institucional
-if (!str_ends_with($perfil['email'], $oAuthConfig['dominio_permitido'])) {
+if (strpos($perfil['email'], $oAuthConfig['dominio_permitido']) === false) {
     http_response_code(403);
     die('Acesso restrito a e-mails institucionais (' . $oAuthConfig['dominio_permitido'] . ').');
 }
