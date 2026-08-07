@@ -4,7 +4,6 @@
 // e cria/loga o usuário no sistema.
 
 require_once __DIR__ . '/../../database.php';
-require_once __DIR__ . '/../../src/session.php';
 $oAuthConfig = require __DIR__ . '/../../src/config/oauth.php';
 
 if (!isset($_GET['code'])) {
@@ -81,8 +80,12 @@ if (!$usuario) {
     $usuario = $stmt->fetch();
 }
 
-// 5) Loga o usuário e redireciona conforme o perfil
-conexia_logar_usuario($usuario);
+// 5) Inicia a sessão e loga o usuário
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$_SESSION['usuario_id'] = $usuario['id'];
+$_SESSION['tipo_perfil'] = $usuario['tipo_perfil'];
 
 $destino = (($usuario['tipo_perfil'] ?? 'estudante') === 'professor')
     ? '../../public/professor/dashboard.php'
